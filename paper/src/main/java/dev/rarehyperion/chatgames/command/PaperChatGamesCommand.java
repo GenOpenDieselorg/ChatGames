@@ -26,12 +26,12 @@ public class PaperChatGamesCommand extends ChatGamesCommand {
     /**
      * Building the full command tree:
      * /chatgames
-     *   reload
-     *   start <game>
-     *   stop
-     *   list
-     *   toggle
-     *   info
+     * reload
+     * start <game>
+     * stop
+     * list
+     * toggle
+     * info
      */
     public LiteralCommandNode<CommandSourceStack> build() {
         final LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal("chatgames")
@@ -48,8 +48,8 @@ public class PaperChatGamesCommand extends ChatGamesCommand {
                 {"list", "chatgames.list"},
                 {"toggle", "chatgames.toggle"},
                 {"help", "chatgames.help"},
-                {"answer", null},
-                {"info", null} // We want info to be accessed by anyone.
+                {"answer", null}, // null = dostęp dla każdego
+                {"info", null}    // We want info to be accessed by anyone.
         };
 
         for(final String[] command : subCommands) {
@@ -57,12 +57,20 @@ public class PaperChatGamesCommand extends ChatGamesCommand {
             final String permission = command[1];
 
             final LiteralArgumentBuilder<CommandSourceStack> node = Commands.literal(name);
-            if(permission != null) node.requires(ctx -> ctx.getSender().hasPermission(permission));
+            
+            // JAWNE wymuszenie wysłania komendy do drzewa klienta, jeśli brak permisji
+            if(permission != null) {
+                node.requires(ctx -> ctx.getSender().hasPermission(permission));
+            } else {
+                node.requires(ctx -> true);
+            }
 
             if("start".equals(name)) {
                 node.then(this.createArgumentNode(name, "game", StringArgumentType.greedyString()));
             } else if("answer".equals(name)) {
-                node.then(this.createArgumentNode(name, "token", StringArgumentType.string()));
+                // Użycie .word() idealnie pasuje pod UUID (nie ma spacji) i rozwiązuje 
+                // w nowszych klientach problemy z weryfikacją wpisanego ciągu
+                node.then(this.createArgumentNode(name, "token", StringArgumentType.word()));
             } else {
                 node.executes(ctx -> {
                     final PlatformSender sender = this.plugin.platform().wrapSender(ctx.getSource().getSender());
