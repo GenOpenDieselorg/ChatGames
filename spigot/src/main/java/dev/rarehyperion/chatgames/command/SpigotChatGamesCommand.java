@@ -31,10 +31,12 @@ public class SpigotChatGamesCommand extends ChatGamesCommand implements CommandE
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
-            final List<String> subCommands = Arrays.asList("reload", "start", "stop", "list", "toggle", "info", "help");
+            // Dodano "answer" do listy subkomend, aby klient Minecrafta (od wersji 1.19.3+) 
+            // wciągnął ją do swojego drzewa komend i nie blokował kliknięć na czacie.
+            final List<String> subCommands = Arrays.asList("reload", "start", "stop", "list", "toggle", "info", "help", "answer");
 
             return subCommands.stream()
-                    .filter(sub -> sub.equals("info") || sender.hasPermission("chatgames." + sub))
+                    .filter(sub -> sub.equals("info") || sub.equals("answer") || sender.hasPermission("chatgames." + sub))
                     .filter(sub -> sub.startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
         }
